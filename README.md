@@ -1,6 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# [AI筋トレメニュー作成]
 
-## Getting Started
+ジムでの「次、何をしよう？」をなくす、パーソナルAI筋トレパートナー。
+いくつかの簡単な質問に答えるだけで、AIがその人に合ったトレーニングメニューを提案し、ジムでの時間を最大限に効果的なものに変えるWebサービスです。
+
+[サービスのスクリーンショットなどを後でここに挿入]
+
+## 🌐 サービスURL
+
+[サービスを公開したら、ここにURLを貼り付けます]
+
+## 💪 コンセプト (Concept)
+
+- **ターゲット:** ジムに興味がある初心者や、トレーニングがマンネリ化している中級者。
+- **課題:** ジム初心者は「何から手をつければいいか分からない」という不安を抱え、中級者は「いつも同じ種目で成長が止まっている」と感じること。
+- **解決策:** ユーザーの身体情報や目標に合わせて、AIがパーソナライズされたトレーニングメニューを即座に生成。何をすべきかが明確になり、新しい種目への挑戦を促します。
+
+## ✨ 主な機能 (MVP)
+
+このプロジェクトは、まず以下の最小限の機能（MVP）を実装することを目標としています。
+
+- **ユーザー情報入力機能**
+  - 身長、体重、目標、週の頻度などを入力するフォーム。
+- **AIによるメニュー自動生成機能**
+  - 入力情報に基づき、1回分のトレーニングメニュー（種目名、セット数、レップ数）をAIが生成して表示します。
+- **YouTube連携機能**
+  - 表示された種目名をクリックすると、YouTubeの検索結果ページが開き、すぐにフォームややり方を確認できます。
+
+## 🛠️ 使用技術 (予定)
+
+- **フロントエンド:** Next.js, React, TypeScript
+- **バックエンド/DB:** Firebase (Firestore)
+- **AI:** Gemini API (予定)
+
+## 🚀 Getting Started (ローカル環境での動かし方)
 
 First, run the development server:
 
@@ -8,29 +40,3 @@ First, run the development server:
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
