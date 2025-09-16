@@ -13,7 +13,7 @@ export default function InputPage() {
   const [level, setLevel] = useState("初心者")
   const [height, setHeight] = useState("")
   const [weight, setWeight] = useState("")
-  const [frequency, setFrequency] = useState("2")
+  const [selectedDays, setSelectedDays] = useState<string[]>([])
   const [duration, setDuration] = useState("60")
   const [equipment, setEquipment] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -22,6 +22,13 @@ export default function InputPage() {
     setIsLoading(true)
 
     try {
+      // 入力値の検証
+      if (selectedDays.length === 0) {
+        alert("少なくとも1つの曜日を選択してください。")
+        setIsLoading(false)
+        return
+      }
+
       const response = await fetch("/api/generate-menu", {
         method: "POST",
         headers: {
@@ -32,26 +39,50 @@ export default function InputPage() {
           level,
           height,
           weight,
-          frequency,
+          selectedDays,
           duration,
           equipment,
         }),
       })
 
       if (!response.ok) {
-        throw new Error("メニューの生成に失敗しました。")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `サーバーエラー: ${response.status}`)
       }
 
       const result = await response.json()
+      
+      // エラーレスポンスのチェック
+      if (result.error) {
+        throw new Error(result.error)
+      }
+      
+      // メニューデータの検証
+      if (!result.weeklyMenu || typeof result.weeklyMenu !== 'object') {
+        throw new Error("メニューデータの形式が正しくありません。")
+      }
+      
+      // 選択された曜日のメニューが存在するかチェック
+      const hasValidMenus = selectedDays.some(day => result.weeklyMenu[day])
+      if (!hasValidMenus) {
+        throw new Error("選択された曜日のメニューが見つかりません。")
+      }
+      
       localStorage.setItem("workout-menu", JSON.stringify(result))
       router.push("/result")
     } catch (error) {
-      console.error(error)
+      console.error("メニュー生成エラー:", error)
+      
+      let errorMessage = "メニューの生成に失敗しました。"
+      
       if (error instanceof Error) {
-        alert(error.message)
+        errorMessage = error.message
       } else {
-        alert(String(error))
+        errorMessage = String(error)
       }
+      
+      // より詳細なエラーメッセージを表示
+      alert(`エラー: ${errorMessage}\n\nもう一度お試しください。問題が続く場合は、入力内容を確認してください。`)
       setIsLoading(false)
     }
   }
@@ -150,24 +181,50 @@ export default function InputPage() {
             </div>
 
             {/* トレーニング設定 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6">
               <div className="space-y-3">
                 <label className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
-                  週のトレーニング頻度
+                  トレーニングする曜日を選択
                 </label>
-                <select
-                  value={frequency}
-                  onChange={(e) => setFrequency(e.target.value)}
-                  disabled={isLoading}
-                  className="select-field"
-                >
-                  <option value="1">📅 1回</option>
-                  <option value="2">📅 2回</option>
-                  <option value="3">📅 3回</option>
-                  <option value="4">📅 4回</option>
-                  <option value="5">📅 5回以上</option>
-                </select>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { value: "月", label: "月曜日" },
+                    { value: "火", label: "火曜日" },
+                    { value: "水", label: "水曜日" },
+                    { value: "木", label: "木曜日" },
+                    { value: "金", label: "金曜日" },
+                    { value: "土", label: "土曜日" },
+                    { value: "日", label: "日曜日" },
+                  ].map((day) => (
+                    <label
+                      key={day.value}
+                      className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+                        selectedDays.includes(day.value)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-muted-foreground/30 hover:border-primary/50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedDays.includes(day.value)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedDays([...selectedDays, day.value])
+                          } else {
+                            setSelectedDays(selectedDays.filter(d => d !== day.value))
+                          }
+                        }}
+                        disabled={isLoading}
+                        className="sr-only"
+                      />
+                      <span className="font-semibold">{day.value}</span>
+                    </label>
+                  ))}
+                </div>
+                {selectedDays.length === 0 && (
+                  <p className="text-sm text-muted-foreground">少なくとも1つの曜日を選択してください</p>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -211,7 +268,7 @@ export default function InputPage() {
             {/* 送信ボタン */}
             <Button
               onClick={handleSubmit}
-              disabled={isLoading}
+              disabled={isLoading || selectedDays.length === 0}
               size="lg"
               className="w-full h-16 text-xl font-bold mt-8 btn-primary"
             >

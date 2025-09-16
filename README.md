@@ -30,7 +30,7 @@
 
 - **フロントエンド:** Next.js, React, TypeScript
 - **バックエンド/DB:** Firebase (Firestore)
-- **AI:** Gemini API (予定)
+- **AI:** Gemini API 
 
 ## 🚀 Getting Started (ローカル環境での動かし方)
 
