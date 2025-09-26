@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,11 +15,61 @@ import {
   Dumbbell,
   Zap,
   TrendingUp,
+  LogIn,
+  User,
 } from "lucide-react"
 
+
+import { useAuth } from "@/lib/auth-context"
+
 export default function Home() {
+  const { user, userProfile, logout } = useAuth()
+
   return (
     <main className="min-h-screen">
+      {/* Header with Login Button */}
+      <header className="absolute top-0 left-0 right-0 z-50 p-6">
+        <div className="max-w-7xl mx-auto flex justify-end">
+          {user ? (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-foreground">
+                <User className="h-5 w-5" />
+                <span className="font-semibold">{userProfile?.displayName || user.email}</span>
+              </div>
+              <Link href="/profile">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="btn-outline"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  プロフィール
+                </Button>
+              </Link>
+              <Button
+                onClick={logout}
+                variant="outline"
+                size="sm"
+                className="btn-outline"
+              >
+                ログアウト
+              </Button>
+            </div>
+          ) : (
+            <Link href="/login">
+              <Button
+                variant="outline"
+                size="sm"
+                className="btn-outline"
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                ログイン
+              </Button>
+            </Link>
+          )}
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="relative hero-gradient px-6 py-24 text-center overflow-hidden">
         {/* Background Elements */}
