@@ -100,29 +100,6 @@ export default function ResultPage() {
     return Math.round((totalCompleted / totalItems) * 100)
   }
 
-  // 週間ポイントを番号付きリストに変換する関数
-  const parseWeeklyTips = (tips: string): Array<{number: number, content: string}> => {
-    if (!tips) return []
-    
-    const numberedTips: Array<{number: number, content: string}> = []
-    
-    // 元のテキストから番号と内容を抽出
-    // 正規表現を修正：より安全なパターンに変更
-    const matches = tips.match(/\d+\.\s*([^\n\r]+?)(?=\s*\d+\.|$)/g)
-    if (matches) {
-      matches.forEach((match, index) => {
-        const content = match.replace(/^\d+\.\s*/, '').trim()
-        if (content) {
-          numberedTips.push({
-            number: index + 1,
-            content: content
-          })
-        }
-      })
-    }
-    
-    return numberedTips
-  }
 
   if (error) {
     return (
@@ -223,29 +200,6 @@ export default function ResultPage() {
           </CardContent>
         </Card>
 
-        {/* 週間全体のトレーニングのポイント */}
-        {menuData.weeklyTips && (
-          <Card className="mb-8 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 shadow-xl card">
-            <CardContent className="pt-8 pb-6">
-              <h3 className="font-bold text-primary mb-6 flex items-center gap-3 text-xl">
-                <Target className="h-6 w-6" />
-                週間トレーニングのポイント
-              </h3>
-              <div className="space-y-4">
-                {parseWeeklyTips(menuData.weeklyTips).map((tip, index) => (
-                  <div key={index} className="flex gap-4 p-4 bg-white/50 rounded-lg border border-primary/10 hover:bg-white/70 transition-colors duration-200">
-                    <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
-                      {tip.number}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-base text-foreground leading-relaxed">{tip.content}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* 選択された曜日のメニュー */}
         {selectedDay && menuData.weeklyMenu[selectedDay] && (
