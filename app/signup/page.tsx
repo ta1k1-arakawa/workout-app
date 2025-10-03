@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,19 +22,19 @@ export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [displayName, setDisplayName] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  
+  const [error, setError] = useState<string | null>(null)
+
   const { signUp } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError("")
+    setError(null)
 
     // バリデーション
     if (password !== confirmPassword) {
@@ -49,37 +49,21 @@ export default function SignupPage() {
       return
     }
 
-    if (!displayName.trim()) {
-      setError("表示名を入力してください。")
-      setIsLoading(false)
-      return
-    }
-
     try {
-      await signUp(email, password, displayName.trim())
-      router.push("/")
-    } catch (error: any) {
-      console.error("サインアップエラー:", error)
-      
-      // エラーメッセージを日本語に変換
-      let errorMessage = "アカウント作成に失敗しました。"
-      if (error.code === "auth/email-already-in-use") {
-        errorMessage = "このメールアドレスは既に使用されています。"
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "メールアドレスの形式が正しくありません。"
-      } else if (error.code === "auth/weak-password") {
-        errorMessage = "パスワードが弱すぎます。より強力なパスワードを設定してください。"
-      } else if (error.code === "auth/network-request-failed") {
-        errorMessage = "ネットワークエラーが発生しました。インターネット接続を確認してください。"
-      }
-      
-      setError(errorMessage)
+      await signUp(email, password)
+      router.replace(searchParams.get("returnTo") || "/")
+    } catch (e: any) {
+      console.error("signup failed:", e?.code, e?.message)
+      setError(e?.message ?? "サインアップに失敗しました")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const isFormValid = email && password && confirmPassword && displayName && password === confirmPassword && password.length >= 6
+  const isFormValid =
+    Boolean(email && password && confirmPassword) &&
+    password === confirmPassword &&
+    password.length >= 6
 
   return (
     <div className="min-h-screen hero-gradient py-12 px-4">
@@ -112,23 +96,6 @@ export default function SignupPage() {
                   <span className="text-sm">{error}</span>
                 </div>
               )}
-
-              {/* 表示名 */}
-              <div className="space-y-3">
-                <label className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <UserPlus className="h-5 w-5 text-primary" />
-                  表示名（英数字）
-                </label>
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="taro-yamada"
-                  disabled={isLoading}
-                  required
-                  className="input-field"
-                />
-              </div>
 
               {/* メールアドレス */}
               <div className="space-y-3">

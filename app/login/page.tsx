@@ -37,22 +37,6 @@ export default function LoginPage() {
       router.push("/")
     } catch (error: any) {
       console.error("ログインエラー:", error)
-      
-      // エラーメッセージを日本語に変換
-      let errorMessage = "ログインに失敗しました。"
-      if (error.code === "auth/user-not-found") {
-        errorMessage = "このメールアドレスは登録されていません。"
-      } else if (error.code === "auth/wrong-password") {
-        errorMessage = "パスワードが正しくありません。"
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "メールアドレスの形式が正しくありません。"
-      } else if (error.code === "auth/too-many-requests") {
-        errorMessage = "ログイン試行回数が多すぎます。しばらく待ってから再試行してください。"
-      } else if (error.code === "auth/network-request-failed") {
-        errorMessage = "ネットワークエラーが発生しました。インターネット接続を確認してください。"
-      }
-      
-      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

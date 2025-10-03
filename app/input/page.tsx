@@ -185,9 +185,9 @@ export default function InputPage() {
               <div className="space-y-3">
                 <label className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
-                  トレーニングする曜日を選択
+                  トレーニングする曜日を選択（5つ以内にしてください）
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
                   {[
                     { value: "月", label: "月曜日" },
                     { value: "火", label: "火曜日" },

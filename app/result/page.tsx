@@ -4,6 +4,12 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { MenuData } from "@/lib/database/menuTypes"
+import { savedMenus } from "@/lib/database/menuService"
+import { WorkoutMenuInput } from "@/lib/database/menuTypes"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
+
 import {
   Play,
   RefreshCw,
@@ -16,33 +22,19 @@ import {
   Trophy,
   Sparkles,
   Activity,
+  Save, 
 } from "lucide-react"
-
-interface MenuItem {
-  name: string
-  sets: string
-  reps: string
-  weight?: string
-  rest?: string
-}
-
-interface DayMenu {
-  type: string
-  menu: MenuItem[]
-  tips?: string
-  totalTime?: string
-}
-
-interface MenuData {
-  weeklyMenu: Record<string, DayMenu>
-  weeklyTips?: string
-}
 
 export default function ResultPage() {
   const [menuData, setMenuData] = useState<MenuData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [completedItems, setCompletedItems] = useState<Record<string, Set<number>>>({})
   const [selectedDay, setSelectedDay] = useState<string>("")
+  const [isSaving, setIsSaving] = useState(false)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [menuName, setMenuName] = useState("")
+  const router = useRouter()
+  const { user } = useAuth()
 
   useEffect(() => {
     const storedMenu = localStorage.getItem("workout-menu")
@@ -50,14 +42,13 @@ export default function ResultPage() {
       try {
         const data = JSON.parse(storedMenu)
         
-        // データの検証
         if (!data.weeklyMenu || typeof data.weeklyMenu !== 'object') {
           setError("メニューデータの形式が正しくありません。")
           return
         }
         
         setMenuData(data)
-        // 最初の曜日を選択状態にする
+        
         const firstDay = Object.keys(data.weeklyMenu || {})[0]
         if (firstDay) {
           setSelectedDay(firstDay)
@@ -100,6 +91,63 @@ export default function ResultPage() {
     return Math.round((totalCompleted / totalItems) * 100)
   }
 
+  const saveMenuToDB = async (name: string) => {
+    if (!menuData) return
+    setIsSaving(true)
+    try {
+      const input: WorkoutMenuInput = { name, menuData }
+      await savedMenus(input)
+      setShowSaveDialog(false)
+    } catch (error) {
+      console.error("メニュー保存エラー:", error)
+      setError("メニューの保存に失敗しました。")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+
+  useEffect(() => {
+    if (!user || !menuData) return
+    const pending = localStorage.getItem("pending-save")
+    if (pending === "1") {
+      const name = localStorage.getItem("pending-menu-name") || "マイメニュー"
+      // 先にフラグを消して二重保存防止
+      localStorage.removeItem("pending-save")
+      localStorage.removeItem("pending-menu-name")
+      setMenuName(name)
+      void saveMenuToDB(name)
+    }
+  }, [user, menuData])
+
+  const handleSaveMenu = async () => {
+    if (!menuData) {
+      setError("メニューデータがありません。")
+      return
+    }
+
+    const defaultName = menuName || "マイメニュー"
+    const nameInput = window.prompt("保存するメニューの名前を入力してください:", defaultName) || ""
+    const name = nameInput.trim()
+    if (!name) {
+      setMenuName("")
+      return
+    }
+    setMenuName(name)
+
+    if (!user) {
+      try {
+        localStorage.setItem("pending-save", "1")
+        localStorage.setItem("pending-menu-name", name)
+        localStorage.setItem("workout-menu", JSON.stringify(menuData))
+      } catch {}
+      const returnTo = encodeURIComponent("/result")
+      router.push(`/signup?returnTo=${returnTo}`)
+      return
+    }
+
+    await saveMenuToDB(name)
+  }
 
   if (error) {
     return (
@@ -346,6 +394,25 @@ export default function ResultPage() {
 
         {/* アクションボタン */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <Button
+            size="lg"
+            className="w-full sm:w-auto px-8 py-4 text-lg font-semibold btn-secondary"
+            disabled={isSaving || !menuData}
+            onClick={handleSaveMenu}
+          >
+            {isSaving ? (
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                保存中...
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Save className="h-5 w-5" />
+                メニューを保存
+              </div>
+            )}
+          </Button>
+
           <Link href="/input">
             <Button
               variant="outline"

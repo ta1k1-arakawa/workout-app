@@ -1,15 +1,16 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { 
-  User, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
+import {
   onAuthStateChanged,
-  updateProfile
-} from 'firebase/auth'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+  signInWithEmailAndPassword,
+  signOut,
+  createUserWithEmailAndPassword,
+  updateProfile,   // ← 追加
+  reload,          // ← 追加
+  type User,
+} from "firebase/auth"
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from './firebase/client'
 
 interface UserProfile {
@@ -26,7 +27,7 @@ interface AuthContextType {
   userProfile: UserProfile | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, displayName: string) => Promise<void>
+  signUp: (email: string, password: string) => Promise<void> // ← 引数を2つに
   logout: () => Promise<void>
   updateUserProfile: (displayName: string, photoURL?: string) => Promise<void>
 }
@@ -38,55 +39,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // ユーザープロフィールをFirestoreから取得
+  // ユーザープロフィール取得（Firestoreが無ければ作る＆displayName補完）
   const fetchUserProfile = async (user: User) => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid))
-      if (userDoc.exists()) {
-        const profileData = userDoc.data()
+      const ref = doc(db, "users", user.uid)
+      const snap = await getDoc(ref)
+      if (snap.exists()) {
+        const data = snap.data() as any
         setUserProfile({
           uid: user.uid,
-          email: user.email || '',
-          displayName: profileData.displayName || user.displayName || '',
-          photoURL: profileData.photoURL || user.photoURL || undefined,
-          createdAt: profileData.createdAt?.toDate() || new Date(),
-          lastLoginAt: new Date()
+          email: user.email ?? "",
+          displayName: data.displayName || user.displayName || (user.email?.split("@")[0] ?? ""),
+          photoURL: user.photoURL ?? undefined,
+          createdAt: data.createdAt?.toDate?.() ?? new Date(),
+          lastLoginAt: data.lastLoginAt?.toDate?.() ?? new Date(),
         })
       } else {
-        // 新規ユーザーの場合、プロフィールを作成
-        const newProfile: UserProfile = {
+        const fallbackName = user.displayName || (user.email?.split("@")[0] ?? "")
+        const profile = {
           uid: user.uid,
-          email: user.email || '',
-          displayName: user.displayName || '',
-          photoURL: user.photoURL || undefined,
-          createdAt: new Date(),
-          lastLoginAt: new Date()
+          email: user.email,
+          displayName: fallbackName,
+          photoURL: user.photoURL ?? null,
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(),
         }
-        await setDoc(doc(db, 'users', user.uid), {
-          ...newProfile,
+        await setDoc(ref, profile, { merge: true })
+        setUserProfile({
+          uid: user.uid,
+          email: user.email ?? "",
+          displayName: fallbackName,
+          photoURL: user.photoURL ?? undefined,
           createdAt: new Date(),
-          lastLoginAt: new Date()
+          lastLoginAt: new Date(),
         })
-        setUserProfile(newProfile)
       }
     } catch (error) {
-      console.error('ユーザープロフィールの取得に失敗:', error)
+      console.warn("ユーザープロフィールの取得に失敗:", error)
     }
   }
 
-  // 認証状態の監視
+  // 認証状態の監視：必要に応じて reload してから反映
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user)
-        await fetchUserProfile(user)
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        try {
+          if (!u.displayName) {
+            await reload(u) // 最新プロフィールを反映
+          }
+        } catch {}
+        setUser(u)
+        await fetchUserProfile(u)
       } else {
         setUser(null)
         setUserProfile(null)
       }
       setLoading(false)
     })
-
     return () => unsubscribe()
   }, [])
 
@@ -94,44 +103,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      // ログイン時刻を更新
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        lastLoginAt: new Date()
-      }, { merge: true })
+      // ログイン時刻を更新（serverTimestamp に統一）
+      await setDoc(
+        doc(db, 'users', userCredential.user.uid),
+        { lastLoginAt: serverTimestamp() },
+        { merge: true }
+      )
     } catch (error) {
       console.error('サインインエラー:', error)
       throw error
     }
   }
 
-  // サインアップ
-  const signUp = async (email: string, password: string, displayName: string) => {
+  // サインアップ：displayNameは使わず、メールのローカル部を既定名にする
+  const signUp = async (email: string, password: string) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      
-      // プロフィールを更新
-      await updateProfile(userCredential.user, {
-        displayName: displayName
-      })
+      const { user } = await createUserWithEmailAndPassword(auth, email, password)
 
-      // Firestoreにユーザー情報を保存
-      const userProfile: UserProfile = {
-        uid: userCredential.user.uid,
-        email: userCredential.user.email || '',
-        displayName: displayName,
-        photoURL: userCredential.user.photoURL || undefined,
-        createdAt: new Date(),
-        lastLoginAt: new Date()
+      const fallbackName = user.displayName || (user.email?.split("@")[0] ?? "")
+
+      try {
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            uid: user.uid,
+            email: user.email,
+            displayName: fallbackName, // ← 既定の表示名
+            photoURL: user.photoURL ?? null,
+            createdAt: serverTimestamp(),
+            lastLoginAt: serverTimestamp(),
+          },
+          { merge: true }
+        )
+      } catch (e) {
+        console.warn("setDoc(users) failed:", e) // 致命扱いにしない
       }
-
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        ...userProfile,
-        createdAt: new Date(),
-        lastLoginAt: new Date()
-      })
-    } catch (error) {
-      console.error('サインアップエラー:', error)
-      throw error
+    } catch (e) {
+      throw e // アカウント作成そのものが失敗したときのみthrow
     }
   }
 

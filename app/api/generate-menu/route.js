@@ -65,7 +65,7 @@ ${equipment ? `- 利用可能な器具: ${equipment}` : ''}
       generationConfig: { 
         responseMimeType: "application/json",
         temperature: 0.1,
-        maxOutputTokens: 4096, // トークン数を増やして完全なレスポンスを保証
+        maxOutputTokens: 8192, // トークン数を増やして完全なレスポンスを保証
         topP: 0.7,
         topK: 20,
       },

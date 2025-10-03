@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -12,21 +12,13 @@ import {
   Mail, 
   Calendar, 
   Clock, 
-  Edit3, 
   ArrowLeft,
   Sparkles,
-  Save,
-  X,
   LogOut
 } from "lucide-react"
 
 export default function ProfilePage() {
-  const [isEditing, setIsEditing] = useState(false)
-  const [displayName, setDisplayName] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  
-  const { user, userProfile, updateUserProfile, logout } = useAuth()
+  const { user, userProfile, logout } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -34,37 +26,7 @@ export default function ProfilePage() {
       router.push("/login")
       return
     }
-    
-    if (userProfile) {
-      setDisplayName(userProfile.displayName)
-    }
-  }, [user, userProfile, router])
-
-  const handleSave = async () => {
-    if (!displayName.trim()) {
-      setError("表示名を英数字で入力してください。")
-      return
-    }
-
-    setIsLoading(true)
-    setError("")
-
-    try {
-      await updateUserProfile(displayName.trim())
-      setIsEditing(false)
-    } catch (error: any) {
-      console.error("プロフィール更新エラー:", error)
-      setError("プロフィールの更新に失敗しました。")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleCancel = () => {
-    setDisplayName(userProfile?.displayName || "")
-    setIsEditing(false)
-    setError("")
-  }
+  }, [user, router])
 
   const handleLogout = async () => {
     try {
@@ -114,60 +76,17 @@ export default function ProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-8 pb-8 space-y-6">
-            {/* エラーメッセージ */}
-            {error && (
-              <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-                <span className="text-sm">{error}</span>
-              </div>
-            )}
-
-            {/* 表示名 */}
+            {/* 表示名（閲覧のみ） */}
             <div className="space-y-3">
               <label className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
-                表示名（英数字）
+                表示名
               </label>
-              {isEditing ? (
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    disabled={isLoading}
-                    className="input-field flex-1"
-                  />
-                  <Button
-                    onClick={handleSave}
-                    disabled={isLoading}
-                    size="sm"
-                    className="btn-primary"
-                  >
-                    <Save className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    onClick={handleCancel}
-                    disabled={isLoading}
-                    variant="outline"
-                    size="sm"
-                    className="btn-outline"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                  <span className="text-lg font-medium">{userProfile?.displayName || "未設定"}</span>
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    variant="outline"
-                    size="sm"
-                    className="btn-outline"
-                  >
-                    <Edit3 className="h-4 w-4 mr-2" />
-                    編集
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                <span className="text-lg font-medium">
+                  {userProfile?.displayName || "未設定"}
+                </span>
+              </div>
             </div>
 
             {/* メールアドレス */}

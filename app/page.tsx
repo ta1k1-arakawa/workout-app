@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { useAuth } from "@/lib/auth-context"
+
 import {
   Target,
   Users,
@@ -17,10 +19,8 @@ import {
   TrendingUp,
   LogIn,
   User,
+  Save,
 } from "lucide-react"
-
-
-import { useAuth } from "@/lib/auth-context"
 
 export default function Home() {
   const { user, userProfile, logout } = useAuth()
