@@ -61,11 +61,11 @@ ${equipment ? `- 利用可能な器具: ${equipment}` : ''}
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lite",
       generationConfig: { 
         responseMimeType: "application/json",
         temperature: 0.1,
-        maxOutputTokens: 8192, // トークン数を増やして完全なレスポンスを保証
+        maxOutputTokens: 8192, 
         topP: 0.7,
         topK: 20,
       },

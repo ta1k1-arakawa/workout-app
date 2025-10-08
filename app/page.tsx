@@ -46,6 +46,15 @@ export default function Home() {
                   プロフィール
                 </Button>
               </Link>
+              <Link href="/menulist">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="btn-outline"
+                >
+                 メニューリスト
+                </Button>
+              </Link>
               <Button
                 onClick={logout}
                 variant="outline"
@@ -84,13 +93,6 @@ export default function Home() {
         </div>
 
         <div className="relative mx-auto max-w-5xl">
-          <div className="mb-8 inline-flex items-center gap-3 rounded-full glass-effect px-8 py-4 text-sm font-semibold text-primary shadow-xl border border-primary/20">
-            <div className="flex items-center justify-center w-6 h-6 bg-primary/20 rounded-full">
-              <Sparkles className="h-3 w-3" />
-            </div>
-            AI搭載フィットネスパートナー
-          </div>
-
           <h1 className="mb-8 text-5xl font-bold tracking-tight text-foreground md:text-7xl lg:text-8xl">
             <span className="gradient-text text-balance">AI筋トレパートナー</span>
           </h1>

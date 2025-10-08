@@ -6,11 +6,14 @@ import {
   signInWithEmailAndPassword,
   signOut,
   createUserWithEmailAndPassword,
-  updateProfile,   // ← 追加
-  reload,          // ← 追加
+  updateProfile,   
+  reload,         
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
   type User,
 } from "firebase/auth"
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
+import { doc, getDoc, setDoc, serverTimestamp, deleteDoc } from "firebase/firestore"
 import { auth, db } from './firebase/client'
 
 interface UserProfile {
@@ -30,6 +33,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void> // ← 引数を2つに
   logout: () => Promise<void>
   updateUserProfile: (displayName: string, photoURL?: string) => Promise<void>
+  deleteAccount: (password?: string) => Promise<void> // ← 変更
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -39,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // ユーザープロフィール取得（Firestoreが無ければ作る＆displayName補完）
   const fetchUserProfile = async (user: User) => {
     try {
       const ref = doc(db, "users", user.uid)
@@ -79,13 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // 認証状態の監視：必要に応じて reload してから反映
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       if (u) {
         try {
           if (!u.displayName) {
-            await reload(u) // 最新プロフィールを反映
+            await reload(u) 
           }
         } catch {}
         setUser(u)
@@ -99,11 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe()
   }, [])
 
-  // サインイン
   const signIn = async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      // ログイン時刻を更新（serverTimestamp に統一）
+     
       await setDoc(
         doc(db, 'users', userCredential.user.uid),
         { lastLoginAt: serverTimestamp() },
@@ -115,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // サインアップ：displayNameは使わず、メールのローカル部を既定名にする
   const signUp = async (email: string, password: string) => {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password)
@@ -128,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           {
             uid: user.uid,
             email: user.email,
-            displayName: fallbackName, // ← 既定の表示名
+            displayName: fallbackName, 
             photoURL: user.photoURL ?? null,
             createdAt: serverTimestamp(),
             lastLoginAt: serverTimestamp(),
@@ -136,14 +137,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           { merge: true }
         )
       } catch (e) {
-        console.warn("setDoc(users) failed:", e) // 致命扱いにしない
+        console.warn("setDoc(users) failed:", e) 
       }
     } catch (e) {
-      throw e // アカウント作成そのものが失敗したときのみthrow
+      throw e 
     }
   }
 
-  // ログアウト
+
   const logout = async () => {
     try {
       await signOut(auth)
@@ -153,7 +154,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // プロフィール更新
   const updateUserProfile = async (displayName: string, photoURL?: string) => {
     if (!user) throw new Error('ユーザーがログインしていません')
     
@@ -163,14 +163,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         photoURL
       })
 
-      // Firestoreも更新
       await setDoc(doc(db, 'users', user.uid), {
         displayName,
         photoURL,
         updatedAt: new Date()
       }, { merge: true })
 
-      // ローカル状態も更新
       setUserProfile(prev => prev ? {
         ...prev,
         displayName,
@@ -182,6 +180,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const reauthenticate = async (password: string) => {
+    if (!user || !user.email) throw new Error("ユーザー情報が不正です")
+    const credential = EmailAuthProvider.credential(user.email, password)
+    await reauthenticateWithCredential(user, credential)
+  }
+
+  const deleteAccount = async (password?: string) => {
+    if (!user) throw new Error("ユーザーがログインしていません")
+    try {
+      if (password) {
+        await reauthenticate(password)
+      }
+      await deleteDoc(doc(db, "users", user.uid))
+      await deleteUser(user)
+      setUser(null)
+      setUserProfile(null)
+    } catch (error) {
+      console.error("アカウント削除エラー:", error)
+      throw error
+    }
+  }
+
   const value = {
     user,
     userProfile,
@@ -189,7 +209,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    deleteAccount, 
   }
 
   return (

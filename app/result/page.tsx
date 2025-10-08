@@ -200,7 +200,7 @@ export default function ResultPage() {
             <Sparkles className="h-4 w-4" />
             あなた専用の週間メニューが完成しました
           </div>
-          <h1 className="text-4xl font-bold text-foreground mb-4 md:text-5xl">あなたの週間トレーニングメニュー</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-4 md:text-5xl">週間トレーニングメニュー</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
             曜日別に最適化されたトレーニングメニューで目標達成を目指しましょう！
           </p>
