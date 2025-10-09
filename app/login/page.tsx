@@ -37,6 +37,23 @@ export default function LoginPage() {
       router.push("/")
     } catch (error: any) {
       console.error("ログインエラー:", error)
+
+      // 認証エラー（メールかパスワードが違う）を判定して alert を出す
+      const isAuthError =
+        error?.response?.status === 401 ||
+        error?.status === 401 ||
+        (typeof error?.message === "string" &&
+          /invalid|credentials|password|email|認証|無効/i.test(error.message))
+
+      if (isAuthError) {
+        const msg = "メールアドレスかパスワードが違います"
+        setError(msg)
+        alert(msg)
+      } else {
+        const msg = "ログインに失敗しました"
+        setError(msg)
+        alert(msg)
+      }
     } finally {
       setIsLoading(false)
     }
