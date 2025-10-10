@@ -33,6 +33,7 @@ export default function ResultPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [menuName, setMenuName] = useState("")
+  const [saved, setSaved] = useState(false)
   const router = useRouter()
   const { user } = useAuth()
 
@@ -97,7 +98,21 @@ export default function ResultPage() {
     try {
       const input: WorkoutMenuInput = { name, menuData }
       await savedMenus(input)
+      // 保存成功: ダイアログを閉じて保存完了ステートにする
       setShowSaveDialog(false)
+      setSaved(true)
+      // pending の一時的なローカルストレージを消す（念のため）
+      try {
+        localStorage.removeItem("pending-save")
+        localStorage.removeItem("pending-menu-name")
+        localStorage.removeItem("workout-menu")
+      } catch (e) {
+        // ignore
+      }
+      // 短時間メッセージを表示してからホームへ遷移
+      setTimeout(() => {
+        router.push("/")
+      }, 1800)
     } catch (error) {
       console.error("メニュー保存エラー:", error)
       setError("メニューの保存に失敗しました。")
@@ -186,6 +201,27 @@ export default function ResultPage() {
             <h2 className="text-2xl font-bold text-foreground mb-4">メニューを読み込み中...</h2>
             <p className="text-muted-foreground text-lg">AIがあなた専用のメニューを準備しています</p>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 保存完了時の確認画面（自動でホームへ遷移します）
+  if (saved) {
+    return (
+      <div className="min-h-screen hero-gradient py-12 px-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <Card className="w-full shadow-2xl card">
+            <CardContent className="pt-12 pb-8">
+              <div className="text-success mb-6">
+                <div className="w-24 h-24 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="h-12 w-12 text-success" />
+                </div>
+                <h1 className="text-3xl font-bold mb-4">保存が完了しました</h1>
+                <p className="text-muted-foreground mb-8 text-lg">メニューをアカウントに保存しました。ホームへ戻ります...</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
