@@ -5,9 +5,9 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MenuData } from "@/lib/database/menuTypes"
-import { savedMenus } from "@/lib/database/menuService"
+import { savedMenus, getMenuById } from "@/lib/database/menuService"
 import { WorkoutMenuInput } from "@/lib/database/menuTypes"
-import { useRouter } from "next/navigation"
+import { useRouter , useSearchParams} from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 
 import {
@@ -36,32 +36,67 @@ export default function ResultPage() {
   const [saved, setSaved] = useState(false)
   const router = useRouter()
   const { user } = useAuth()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
-    const storedMenu = localStorage.getItem("workout-menu")
-    if (storedMenu) {
-      try {
-        const data = JSON.parse(storedMenu)
-        
-        if (!data.weeklyMenu || typeof data.weeklyMenu !== 'object') {
-          setError("メニューデータの形式が正しくありません。")
-          return
+    const menuId = searchParams.get("menuId")
+
+    const fetchMenu = async () => {
+      if (menuId) {
+        try {
+          const menu = await getMenuById(menuId)
+          if (menu) {
+            setMenuData(menu.menuData)
+            setMenuName(menu.name)
+            const firstDay = Object.keys(menu.menuData.weeklyMenu || {})[0]
+            if (firstDay) {
+              setSelectedDay(firstDay)
+            }
+          } else {
+            setError("指定されたメニューが見つかりません。")
+          }
+        } catch (e: any) {
+          setError(e.message || "メニューの読み込みに失敗しました。")
         }
-        
-        setMenuData(data)
-        
-        const firstDay = Object.keys(data.weeklyMenu || {})[0]
-        if (firstDay) {
-          setSelectedDay(firstDay)
+      } else {
+        const storedMenu = localStorage.getItem("workout-menu")
+        if (storedMenu) {
+          try {
+            const data = JSON.parse(storedMenu)
+            if (!data.weeklyMenu || typeof data.weeklyMenu !== "object") {
+              setError("メニューデータの形式が正しくありません。")
+              return
+            }
+            setMenuData(data)
+            const firstDay = Object.keys(data.weeklyMenu || {})[0]
+            if (firstDay) {
+              setSelectedDay(firstDay)
+            }
+          } catch (parseError) {
+            console.error("JSON解析エラー:", parseError)
+            setError("メニューの解析に失敗しました。データが破損している可能性があります。")
+          }
+        } else {
+          // setError("メニューデータが見つかりません。")
         }
-      } catch (parseError) {
-        console.error('JSON解析エラー:', parseError)
-        setError("メニューの解析に失敗しました。データが破損している可能性があります。")
       }
-    } else {
-      setError("メニューデータが見つかりません。")
     }
-  }, [])
+
+    fetchMenu()
+  }, [searchParams])
+
+  useEffect(() => {
+    if (!user || !menuData) return
+    const pending = localStorage.getItem("pending-save")
+    if (pending === "1") {
+      const name = localStorage.getItem("pending-menu-name") || "マイメニュー"
+      // 先にフラグを消して二重保存防止
+      localStorage.removeItem("pending-save")
+      localStorage.removeItem("pending-menu-name")
+      setMenuName(name)
+      void saveMenuToDB(name)
+    }
+  }, [user, menuData])
 
   const toggleCompleted = (day: string, index: number) => {
     const newCompleted = { ...completedItems }
@@ -121,19 +156,6 @@ export default function ResultPage() {
     }
   }
 
-
-  useEffect(() => {
-    if (!user || !menuData) return
-    const pending = localStorage.getItem("pending-save")
-    if (pending === "1") {
-      const name = localStorage.getItem("pending-menu-name") || "マイメニュー"
-      // 先にフラグを消して二重保存防止
-      localStorage.removeItem("pending-save")
-      localStorage.removeItem("pending-menu-name")
-      setMenuName(name)
-      void saveMenuToDB(name)
-    }
-  }, [user, menuData])
 
   const handleSaveMenu = async () => {
     if (!menuData) {

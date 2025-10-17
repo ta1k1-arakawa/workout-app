@@ -116,7 +116,7 @@ export default function MenuListPage() {
                     <Link
                       href={{
                         pathname: "/result",
-                        query: { menuid: menu.id },
+                        query: { menuId: menu.id },
                       }}
                       className="btn-outline px-6 py-2 text-base"
                     >

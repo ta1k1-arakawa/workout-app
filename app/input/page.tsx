@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, Target, Clock, Calendar, Ruler, Weight, Settings, Sparkles, TrendingUp, Zap } from "lucide-react"
+import { Dumbbell, Target, Clock, Calendar, Ruler, Weight, Settings, Sparkles, TrendingUp, Zap, ArrowLeft } from "lucide-react"
 
 type MultiSelectProps = {
   options: string[]
@@ -399,24 +400,36 @@ export default function InputPage() {
             </div>
 
             {/* 送信ボタン */}
-            <Button
-              onClick={handleSubmit}
-              disabled={isLoading || selectedDays.length === 0}
-              size="lg"
-              className="w-full h-16 text-xl font-bold mt-8 btn-primary"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-3">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  メニューを生成中...
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Settings className="h-6 w-6" />
-                  メニューを作成
-                </div>
-              )}
-            </Button>
+            <div className="flex flex-col gap-4 mt-8">
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading || selectedDays.length === 0}
+                size="lg"
+                className="w-full h-16 text-xl font-bold btn-primary"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    メニューを生成中...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <Settings className="h-6 w-6" />
+                    メニューを作成
+                  </div>
+                )}
+              </Button>
+              <Link href="/" className="w-full">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-16 text-xl font-bold btn-outline bg-transparent"
+                >
+                  <ArrowLeft className="h-6 w-6 mr-3" />
+                  ホームに戻る
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
