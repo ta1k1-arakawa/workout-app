@@ -18,6 +18,8 @@ import {
   CheckCircle
 } from "lucide-react"
 
+
+// サインアップページ
 export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -36,7 +38,6 @@ export default function SignupPage() {
     setIsLoading(true)
     setError(null)
 
-    // バリデーション
     if (password !== confirmPassword) {
       setError("パスワードが一致しません。")
       setIsLoading(false)
@@ -60,6 +61,7 @@ export default function SignupPage() {
     }
   }
 
+  // フォーム送信が有効かどうか
   const isFormValid =
     Boolean(email && password && confirmPassword) &&
     password === confirmPassword &&
@@ -219,8 +221,8 @@ export default function SignupPage() {
               </Button>
             </form>
 
-            {/* リンク */}
             <div className="mt-8 space-y-4 text-center">
+              {/* ログイン */}
               <div className="text-sm text-muted-foreground">
                 既にアカウントをお持ちの方は{" "}
                 <Link 
@@ -231,6 +233,7 @@ export default function SignupPage() {
                 </Link>
               </div>
               
+              {/* ホームに戻る */}
               <div className="pt-4 border-t border-muted-foreground/20">
                 <Link href="/">
                   <Button

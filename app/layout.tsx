@@ -32,12 +32,12 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://ai-workout-partner.vercel.app"),
+  metadataBase: new URL("https://ai-workout-partner.vercel.app"),//仮
   openGraph: {
     title: "AI筋トレパートナー - あなた専用のワークアウトメニュー作成",
     description:
       "AIがあなたの目標とレベルに合わせて最適なトレーニングメニューを作成。筋力アップ、ダイエット、健康維持に最適なワークアウトプランを提供します。",
-    url: "https://ai-workout-partner.vercel.app",
+    url: "https://ai-workout-partner.vercel.app",//仮
     siteName: "AI筋トレパートナー",
     images: [
       {

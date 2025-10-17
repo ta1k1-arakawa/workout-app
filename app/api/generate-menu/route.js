@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req) {
   const body = await req.json();
-  const { goal, level, height, weight, selectedDays, duration, equipment } = body;
+  const { height, weight, goal, level, targetAreas, injuredAreas, selectedDays, duration, equipment } = body;
 
   try {
     // 環境変数のチェック
@@ -21,10 +21,12 @@ export async function POST(req) {
 以下の条件に基づいて、選択された曜日ごとに異なるトレーニングメニューを提案してください。
 
 【基本情報】
-- 目標: ${goal}
-- レベル: ${level}
 ${height ? `- 身長: ${height}cm` : ''}
 ${weight ? `- 体重: ${weight}kg` : ''}
+- 目標: ${goal}
+- レベル: ${level}
+- 鍛えたい部位: ${targetAreas}
+- けがしている部位: ${ injuredAreas}
 - トレーニング曜日: ${selectedDays.join(', ')}
 - 1回のトレーニング時間: ${duration}分
 ${equipment ? `- 利用可能な器具: ${equipment}` : ''}

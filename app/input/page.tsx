@@ -1,10 +1,109 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dumbbell, Target, Clock, Calendar, Ruler, Weight, Settings, Sparkles, TrendingUp, Zap } from "lucide-react"
+
+type MultiSelectProps = {
+  options: string[]
+  values: string[]
+  onChange: (values: string[]) => void
+  placeholder?: string
+  disabled?: boolean
+}
+
+function MultiSelect({ options, values, onChange, placeholder = "選択してください", disabled }: MultiSelectProps) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (!containerRef.current) return
+      if (!containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside)
+    return () => document.removeEventListener("mousedown", onClickOutside)
+  }, [])
+
+  const toggle = (opt: string) => {
+    if (values.includes(opt)) {
+      onChange(values.filter((v) => v !== opt))
+    } else {
+      onChange([...values, opt])
+    }
+  }
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((v) => !v)}
+        className={`select-field w-full text-left min-h-[44px] flex items-center gap-2 flex-wrap ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+      >
+        {values.length === 0 ? (
+          <span className="text-muted-foreground">{placeholder}</span>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {values.slice(0, 4).map((v) => (
+              <span key={v} className="px-2 py-1 rounded-full bg-primary/10 text-primary text-sm">
+                {v}
+              </span>
+            ))}
+            {values.length > 4 && (
+              <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-sm">+{values.length - 4}</span>
+            )}
+          </div>
+        )}
+        <span className="ml-auto text-muted-foreground">▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-2 w-full rounded-md border bg-background shadow-lg">
+          <ul className="max-h-64 overflow-auto p-1">
+            {options.map((opt) => {
+              const checked = values.includes(opt)
+              return (
+                <li key={opt}>
+                  <button
+                    type="button"
+                    onClick={() => toggle(opt)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-left rounded-md hover:bg-accent ${
+                      checked ? "text-primary" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      readOnly
+                      className="h-4 w-4"
+                    />
+                    <span className="text-sm">{opt}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          {values.length > 0 && (
+            <div className="border-t p-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                クリア
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function InputPage() {
   const router = useRouter()
@@ -16,6 +115,8 @@ export default function InputPage() {
   const [selectedDays, setSelectedDays] = useState<string[]>([])
   const [duration, setDuration] = useState("60")
   const [equipment, setEquipment] = useState("")
+  const [targetAreas, setTargetAreas] = useState<string[]>([])
+  const [injuredAreas, setInjuredAreas] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async () => {
@@ -39,6 +140,9 @@ export default function InputPage() {
           level,
           height,
           weight,
+          // 後方互換のため単数キーは送らず、サーバ側で正規化する想定
+          targetAreas,
+          injuredAreas,
           selectedDays,
           duration,
           equipment,
@@ -111,6 +215,39 @@ export default function InputPage() {
             <p className="text-muted-foreground mt-2">あなたの目標に合わせて、最適なトレーニングメニューを作成します</p>
           </CardHeader>
           <CardContent className="space-y-8 px-8 pb-8">
+            {/* 身体情報 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <label className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Ruler className="h-5 w-5 text-primary" />
+                  身長 (cm)
+                </label>
+                <input
+                  type="number"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  placeholder="例: 170"
+                  disabled={isLoading}
+                  className="input-field"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Weight className="h-5 w-5 text-primary" />
+                  体重 (kg)
+                </label>
+                <input
+                  type="number"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  placeholder="例: 65"
+                  disabled={isLoading}
+                  className="input-field"
+                />
+              </div>
+            </div>
+
             {/* 目標 */}
             <div className="space-y-3">
               <label className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -147,37 +284,33 @@ export default function InputPage() {
               </select>
             </div>
 
-            {/* 身体情報 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <label className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Ruler className="h-5 w-5 text-primary" />
-                  身長 (cm)
-                </label>
-                <input
-                  type="number"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  placeholder="例: 170"
-                  disabled={isLoading}
-                  className="input-field"
-                />
-              </div>
+            {/* どこを鍛えたいか（複数選択） */}
+            <div className="space-y-3">
+              <label className="text-lg font-semibold text-foreground flex items-center gap-2">
+                🏋️‍♂️鍛えたい部位（複数選択可）
+              </label>
+              <MultiSelect
+                options={["胸","背中","脚","肩","腕","体幹","ヒップ","全身","心肺"]}
+                values={targetAreas}
+                onChange={setTargetAreas}
+                disabled={isLoading}
+                placeholder="部位を選択"
+              />
+            </div>
 
-              <div className="space-y-3">
-                <label className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Weight className="h-5 w-5 text-primary" />
-                  体重 (kg)
-                </label>
-                <input
-                  type="number"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="例: 65"
-                  disabled={isLoading}
-                  className="input-field"
-                />
-              </div>
+            {/* けがしている場所（複数選択） */}
+            <div className="space-y-3">
+              <label className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                けがしている部位（複数選択可）
+              </label>
+              <MultiSelect
+                options={["首","肩","肘","手首","背中","腰","股関節","膝","足首","足"]}
+                values={injuredAreas}
+                onChange={setInjuredAreas}
+                disabled={isLoading}
+                placeholder="けがのある部位を選択（任意）"
+              />
             </div>
 
             {/* トレーニング設定 */}

@@ -17,6 +17,7 @@ import {
   AlertCircle
 } from "lucide-react"
 
+// ログインページ
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const { signIn } = useAuth()
   const router = useRouter()
 
+  // ログインの送信
   const handleSubmit = async function(e: React.FormEvent){
     e.preventDefault()
     setIsLoading(true)
@@ -156,7 +158,7 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* リンク */}
+            {/* 新規登録 */}
             <div className="mt-8 space-y-4 text-center">
               <div className="text-sm text-muted-foreground">
                 アカウントをお持ちでない方は{" "}

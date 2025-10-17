@@ -16,6 +16,7 @@ export default function MenuListPage() {
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  // メニュー取得
   const fetchMenus = async () => {
     setLoading(true)
     setError(null)

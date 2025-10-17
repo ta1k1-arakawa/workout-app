@@ -18,11 +18,12 @@ import {
   Trash2
 } from "lucide-react"
 
+// プロフィールページ
 export default function ProfilePage() {
   const { user, userProfile, logout, deleteAccount } = useAuth() 
   const router = useRouter()
 
-  // 追加: 表示名をメールローカル部で統一
+  // 表示名をメールローカル部で統一
   const displayName = user?.email ? user.email.split("@")[0] : ""
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function ProfilePage() {
     }
   }, [user, router])
 
+  // ログアウト処理
   const handleLogout = async () => {
     try {
       await logout()
@@ -45,7 +47,7 @@ export default function ProfilePage() {
   const handleDeleteAccount = async () => {
     if (window.confirm("本当にアカウントを削除しますか？この操作は取り消せません。")) {
       try {
-        await deleteAccount() // DBからも完全削除する関数（useAuthで実装が必要）
+        await deleteAccount() 
         router.push("/")
       } catch (error) {
         console.error("アカウント削除エラー:", error)

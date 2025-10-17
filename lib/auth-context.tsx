@@ -16,6 +16,7 @@ import {
 import { doc, getDoc, setDoc, serverTimestamp, deleteDoc } from "firebase/firestore"
 import { auth, db } from './firebase/client'
 
+// ユーザープロフィールの型定義
 interface UserProfile {
   uid: string
   email: string
@@ -25,24 +26,27 @@ interface UserProfile {
   lastLoginAt: Date
 }
 
+// AuthContextの型定義
 interface AuthContextType {
   user: User | null
   userProfile: UserProfile | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void> // ← 引数を2つに
+  signUp: (email: string, password: string) => Promise<void> 
   logout: () => Promise<void>
   updateUserProfile: (displayName: string, photoURL?: string) => Promise<void>
-  deleteAccount: (password?: string) => Promise<void> // ← 変更
+  deleteAccount: (password?: string) => Promise<void> 
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// AuthProviderコンポーネント
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // ユーザープロフィールを取得または作成する関数
   const fetchUserProfile = async (user: User) => {
     try {
       const ref = doc(db, "users", user.uid)
@@ -53,7 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           uid: user.uid,
           email: user.email ?? "",
           displayName: data.displayName || user.displayName || (user.email?.split("@")[0] ?? ""),
-          photoURL: user.photoURL ?? undefined,
           createdAt: data.createdAt?.toDate?.() ?? new Date(),
           lastLoginAt: data.lastLoginAt?.toDate?.() ?? new Date(),
         })
@@ -63,7 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           uid: user.uid,
           email: user.email,
           displayName: fallbackName,
-          photoURL: user.photoURL ?? null,
           createdAt: serverTimestamp(),
           lastLoginAt: serverTimestamp(),
         }
@@ -72,7 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           uid: user.uid,
           email: user.email ?? "",
           displayName: fallbackName,
-          photoURL: user.photoURL ?? undefined,
           createdAt: new Date(),
           lastLoginAt: new Date(),
         })
@@ -220,6 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// useAuthフック
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {

@@ -4,11 +4,13 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 
+// ProtectedRouteコンポーネントのプロパティ型定義
 interface ProtectedRouteProps {
   children: React.ReactNode
   redirectTo?: string
 }
 
+// ProtectedRouteコンポーネント
 export default function ProtectedRoute({ 
   children, 
   redirectTo = "/login" 

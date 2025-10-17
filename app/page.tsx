@@ -22,15 +22,16 @@ import {
   Save,
 } from "lucide-react"
 
+// ホームページコンポーネント
 export default function Home() {
   const { user, userProfile, logout } = useAuth()
 
   return (
     <main className="min-h-screen">
-      {/* Header with Login Button */}
       <header className="absolute top-0 left-0 right-0 z-50 p-6">
         <div className="max-w-7xl mx-auto flex justify-end">
           {user ? (
+            // ログインしている場合の表示
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-foreground">
                 <User className="h-5 w-5" />
@@ -65,6 +66,7 @@ export default function Home() {
               </Button>
             </div>
           ) : (
+            // ログインしてない場合の表示
             <Link href="/login">
               <Button
                 variant="outline"
@@ -79,9 +81,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="relative hero-gradient px-6 py-24 text-center overflow-hidden">
-        {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-float"></div>
           <div
@@ -122,12 +122,9 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-
-          {/* Stats */}
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="section-gradient px-6 py-24">
         <div className="mx-auto max-w-7xl">
           <div className="mb-20 text-center">
@@ -203,7 +200,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <section className="px-6 py-24 bg-gradient-to-br from-muted/30 via-background to-muted/30">
         <div className="mx-auto max-w-6xl">
           <div className="mb-20 text-center">
@@ -239,7 +235,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="px-6 py-24 hero-gradient">
         <div className="mx-auto max-w-5xl text-center">
           <h2 className="mb-8 text-4xl font-bold text-foreground md:text-5xl text-balance">

@@ -101,7 +101,7 @@ export default function ResultPage() {
       // 保存成功: ダイアログを閉じて保存完了ステートにする
       setShowSaveDialog(false)
       setSaved(true)
-      // pending の一時的なローカルストレージを消す（念のため）
+      // pending の一時的なローカルストレージを消す（念のたｒめ）
       try {
         localStorage.removeItem("pending-save")
         localStorage.removeItem("pending-menu-name")
