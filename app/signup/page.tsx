@@ -53,9 +53,13 @@ export default function SignupPage() {
     try {
       await signUp(email, password)
       router.replace(searchParams.get("returnTo") || "/")
-    } catch (e: any) {
-      console.error("signup failed:", e?.code, e?.message)
-      setError(e?.message ?? "サインアップに失敗しました")
+    } catch (e) {
+      let message = "サインアップに失敗しました"
+      if (e instanceof Error) {
+        message = e.message
+      }
+      console.error("signup failed:", e)
+      setError(message)
     } finally {
       setIsLoading(false)
     }

@@ -13,7 +13,6 @@ import {
   Calendar, 
   Clock, 
   ArrowLeft,
-  Sparkles,
   LogOut,
   Trash2
 } from "lucide-react"

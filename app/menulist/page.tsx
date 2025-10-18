@@ -23,8 +23,12 @@ export default function MenuListPage() {
     try {
       const data = await getSavedMenus()
       setMenus(data)
-    } catch (e: any) {
-      setError(e?.message || "メニューの取得に失敗しました")
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e.message)
+      } else {
+        setError("メニューの取得に失敗しました")
+      }
     } finally {
       setLoading(false)
     }
@@ -40,8 +44,12 @@ export default function MenuListPage() {
     try {
       await deleteMenu(id)
       setMenus((prev) => prev.filter((m) => m.id !== id))
-    } catch (e: any) {
-      alert(e?.message || "削除に失敗しました")
+    } catch (e) {
+      if (e instanceof Error) {
+        alert(e.message)
+      } else {
+        alert("削除に失敗しました")
+      }
     } finally {
       setDeletingId(null)
     }

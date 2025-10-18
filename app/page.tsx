@@ -9,17 +9,13 @@ import {
   Target,
   Users,
   ArrowRight,
-  Sparkles,
   Clock,
-  Activity,
   Award,
   BarChart3,
   Dumbbell,
   Zap,
-  TrendingUp,
   LogIn,
   User,
-  Save,
 } from "lucide-react"
 
 // ホームページコンポーネント

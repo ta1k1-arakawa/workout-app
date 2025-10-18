@@ -37,15 +37,28 @@ export default function LoginPage() {
     try {
       await signIn(email, password)
       router.push("/")
-    } catch (error: any) {
-      console.error("ログインエラー:", error)
-
+    } catch (error) {
       // 認証エラー（メールかパスワードが違う）を判定して alert を出す
-      const isAuthError =
-        error?.response?.status === 401 ||
-        error?.status === 401 ||
-        (typeof error?.message === "string" &&
-          /invalid|credentials|password|email|認証|無効/i.test(error.message))
+      let isAuthError = false
+      if (error instanceof Error) {
+        isAuthError = /invalid|credentials|password|email|認証|無効/i.test(error.message)
+      }
+
+      if (!isAuthError && typeof error === 'object' && error !== null) {
+        if ('response' in error) {
+          const response = (error as { response?: unknown }).response
+          if (typeof response === 'object' && response !== null && 'status' in response) {
+            if ((response as { status: unknown }).status === 401) {
+              isAuthError = true
+            }
+          }
+        }
+        if (!isAuthError && 'status' in error) {
+          if ((error as { status: unknown }).status === 401) {
+            isAuthError = true
+          }
+        }
+      }
 
       if (isAuthError) {
         const msg = "メールアドレスかパスワードが違います"

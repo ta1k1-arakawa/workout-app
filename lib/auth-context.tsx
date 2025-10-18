@@ -13,7 +13,7 @@ import {
   reauthenticateWithCredential,
   type User,
 } from "firebase/auth"
-import { doc, getDoc, setDoc, serverTimestamp, deleteDoc } from "firebase/firestore"
+import { doc, getDoc, setDoc, serverTimestamp, deleteDoc, type DocumentData } from "firebase/firestore"
 import { auth, db } from './firebase/client'
 
 // ユーザープロフィールの型定義
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const ref = doc(db, "users", user.uid)
       const snap = await getDoc(ref)
       if (snap.exists()) {
-        const data = snap.data() as any
+        const data: DocumentData = snap.data()
         setUserProfile({
           uid: user.uid,
           email: user.email ?? "",

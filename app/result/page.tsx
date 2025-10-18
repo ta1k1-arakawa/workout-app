@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -31,12 +31,36 @@ export default function ResultPage() {
   const [completedItems, setCompletedItems] = useState<Record<string, Set<number>>>({})
   const [selectedDay, setSelectedDay] = useState<string>("")
   const [isSaving, setIsSaving] = useState(false)
-  const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [menuName, setMenuName] = useState("")
   const [saved, setSaved] = useState(false)
   const router = useRouter()
   const { user } = useAuth()
   const searchParams = useSearchParams()
+
+  const saveMenuToDB = useCallback(async (name: string) => {
+    if (!menuData) return
+    setIsSaving(true)
+    try {
+      const input: WorkoutMenuInput = { name, menuData }
+      await savedMenus(input)
+      setSaved(true)
+      // pending の一時的なローカルストレージを消す（念のたｒめ）
+      try {
+        localStorage.removeItem("pending-save")
+        localStorage.removeItem("pending-menu-name")
+        localStorage.removeItem("workout-menu")
+      } catch {}
+      // 短時間メッセージを表示してからホームへ遷移
+      setTimeout(() => {
+        router.push("/")
+      }, 1800)
+    } catch (error) {
+      console.error("メニュー保存エラー:", error)
+      setError("メニューの保存に失敗しました。")
+    } finally {
+      setIsSaving(false)
+    }
+  }, [menuData, router])
 
   useEffect(() => {
     const menuId = searchParams.get("menuId")
@@ -55,8 +79,12 @@ export default function ResultPage() {
           } else {
             setError("指定されたメニューが見つかりません。")
           }
-        } catch (e: any) {
-          setError(e.message || "メニューの読み込みに失敗しました。")
+        } catch (e) {
+          if (e instanceof Error) {
+            setError(e.message)
+          } else {
+            setError("メニューの読み込みに失敗しました。")
+          }
         }
       } else {
         const storedMenu = localStorage.getItem("workout-menu")
@@ -96,7 +124,7 @@ export default function ResultPage() {
       setMenuName(name)
       void saveMenuToDB(name)
     }
-  }, [user, menuData])
+  }, [user, menuData, saveMenuToDB])
 
   const toggleCompleted = (day: string, index: number) => {
     const newCompleted = { ...completedItems }
@@ -125,35 +153,6 @@ export default function ResultPage() {
     const totalItems = Object.values(menuData.weeklyMenu).reduce((sum, day) => sum + day.menu.length, 0)
     const totalCompleted = Object.values(completedItems).reduce((sum, daySet) => sum + daySet.size, 0)
     return Math.round((totalCompleted / totalItems) * 100)
-  }
-
-  const saveMenuToDB = async (name: string) => {
-    if (!menuData) return
-    setIsSaving(true)
-    try {
-      const input: WorkoutMenuInput = { name, menuData }
-      await savedMenus(input)
-      // 保存成功: ダイアログを閉じて保存完了ステートにする
-      setShowSaveDialog(false)
-      setSaved(true)
-      // pending の一時的なローカルストレージを消す（念のたｒめ）
-      try {
-        localStorage.removeItem("pending-save")
-        localStorage.removeItem("pending-menu-name")
-        localStorage.removeItem("workout-menu")
-      } catch (e) {
-        // ignore
-      }
-      // 短時間メッセージを表示してからホームへ遷移
-      setTimeout(() => {
-        router.push("/")
-      }, 1800)
-    } catch (error) {
-      console.error("メニュー保存エラー:", error)
-      setError("メニューの保存に失敗しました。")
-    } finally {
-      setIsSaving(false)
-    }
   }
 
 
