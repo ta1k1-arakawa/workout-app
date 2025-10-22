@@ -7,8 +7,7 @@
 
 ## 🚀 デモURL & 主要機能
 
-実際に触れるデモはこちら → https://workout-app-....vercel.app/
-
+実際に触れるデモはこちら →https://workout-app-vzo5.vercel.app/
 ## テスト用アカウント
 mail　address : test@example.com
 password : password123
