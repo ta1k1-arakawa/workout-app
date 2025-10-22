@@ -25,6 +25,8 @@ import {
   Save, 
 } from "lucide-react"
 
+const dayOrder = ["月", "火", "水", "木", "金", "土", "日"]
+
 export default function ResultPage() {
   const [menuData, setMenuData] = useState<MenuData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -72,7 +74,10 @@ export default function ResultPage() {
           if (menu) {
             setMenuData(menu.menuData)
             setMenuName(menu.name)
-            const firstDay = Object.keys(menu.menuData.weeklyMenu || {})[0]
+            const sortedDays = Object.keys(menu.menuData.weeklyMenu || {}).sort(
+              (a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b)
+            )
+            const firstDay = sortedDays[0]
             if (firstDay) {
               setSelectedDay(firstDay)
             }
@@ -96,7 +101,10 @@ export default function ResultPage() {
               return
             }
             setMenuData(data)
-            const firstDay = Object.keys(data.weeklyMenu || {})[0]
+            const sortedDays = Object.keys(data.weeklyMenu || {}).sort(
+              (a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b)
+            )
+            const firstDay = sortedDays[0]
             if (firstDay) {
               setSelectedDay(firstDay)
             }
@@ -285,7 +293,9 @@ export default function ResultPage() {
         <Card className="mb-8 shadow-xl card">
           <CardContent className="pt-6 pb-6">
             <div className="flex flex-wrap gap-3 justify-center">
-              {Object.keys(menuData.weeklyMenu).map((day) => (
+              {Object.keys(menuData.weeklyMenu)
+                .sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b))
+                .map((day) => (
                 <button
                   key={day}
                   onClick={() => setSelectedDay(day)}

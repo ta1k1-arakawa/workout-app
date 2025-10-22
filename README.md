@@ -1,42 +1,73 @@
-# [AI筋トレメニュー作成]
+# 筋トレメニュー自動生成アプリ
 
-ジムでの「次、何をしよう？」をなくす、パーソナルAI筋トレパートナー。
-いくつかの簡単な質問に答えるだけで、AIがその人に合ったトレーニングメニューを提案し、ジムでの時間を最大限に効果的なものに変えるWebサービスです。
+## 概要
+ユーザーの体格、目標、所有器具に応じて、AI（Gemini API）が最適な1週間の筋トレメニューを自動で生成するWebアプリケーションです。
 
-[サービスのスクリーンショットなどを後でここに挿入]
+---
 
-## 🌐 サービスURL
+## 🚀 デモURL & 主要機能
 
-[サービスを公開したら、ここにURLを貼り付けます]
+実際に触れるデモはこちら → https://workout-app-....vercel.app/
 
-## 💪 コンセプト (Concept)
+## テスト用アカウント
+mail　address : test@example.com
+password : password123
 
-- **ターゲット:** ジムに興味がある初心者や、トレーニングがマンネリ化している中級者。
-- **課題:** ジム初心者は「何から手をつければいいか分からない」という不安を抱え、中級者は「いつも同じ種目で成長が止まっている」と感じること。
-- **解決策:** ユーザーの身体情報や目標に合わせて、AIがパーソナライズされたトレーニングメニューを即座に生成。何をすべきかが明確になり、新しい種目への挑戦を促します。
+### GIFデモ
+[ここにアプリを操作しているGIF画像を貼り付けます]
 
-## ✨ 主な機能 (MVP)
+### 主な機能
+* **AIによるメニュー生成**: 身長・体重・目標などを入力すると、Gemini APIがパーソナライズされたメニューをJSON形式で返却します。
+* **ユーザー認証**: Firebase Authenticationによるログイン・新規登録機能。
+* **データ保存**: 生成したお気に入りのメニューをFirestoreに保存し、いつでも見返すことができます。
 
-このプロジェクトは、まず以下の最小限の機能（MVP）を実装することを目標としています。
+---
 
-- **ユーザー情報入力機能**
-  - 身長、体重、目標、週の頻度などを入力するフォーム。
-- **AIによるメニュー自動生成機能**
-  - 入力情報に基づき、1回分のトレーニングメニュー（種目名、セット数、レップ数）をAIが生成して表示します。
-- **YouTube連携機能**
-  - 表示された種目名をクリックすると、YouTubeの検索結果ページが開き、すぐにフォームややり方を確認できます。
+## ✨ 工夫した点・アピールポイント
 
-## 🛠️ 使用技術 (予定)
+このポートフォリオを作成する上で、特にこだわった点です。
 
-- **フロントエンド:** Next.js, React, TypeScript
-- **バックエンド/DB:** Firebase (Firestore)
-- **AI:** Gemini API 
+1.  **AI出力の安定化**: プロンプトエンジニアリングにより、AIの出力を必ずJSON形式に整形。サーバー側でZodを用いた厳密なバリデーションを行い、予期せぬエラーを防いでいます。
+2.  **セキュリティ**: Firestoreのセキュリティルールを設定し、ユーザーは自身のデータにしかアクセスできないように制御しています。APIキーなどの秘密鍵は全てサーバーサイドでのみ扱い、クライアントには漏洩させません。
+3.  **堅牢なAPI設計**: APIのエンドポイントではZodによる入力値検証を導入し、不正なリクエストをブロックすることで、AIの無駄な呼び出しやコストの暴走を防いでいます。
+4.  **モダンな開発環境**: Next.js (App Router) を採用し、サーバーコンポーネントとクライアントコンポーネントを適切に使い分けることでパフォーマンスを意識しました。また、GitHub ActionsによるCI（継続的インテグレーション）を導入し、コード品質を自動で担保しています。
 
-## 🚀 Getting Started (ローカル環境での動かし方)
+---
 
-First, run the development server:
+## 🛠️ 使用技術
 
-```bash
-npm run dev
-# or
-yarn dev
+![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)
+![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-3E67B1?logo=zod&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_API-8E44AD?logo=google&logoColor=white)
+
+---
+
+## 📂 ローカルでの起動方法
+
+1.  **リポジトリをクローン**
+    ```bash
+    git clone [あなたのリポジトリURL]
+    cd [リポジトリ名]
+    ```
+
+2.  **依存関係をインストール**
+    ```bash
+    npm install
+    ```
+
+3.  **環境変数の設定**
+    `.env.local.example` ファイルをコピーして `.env.local` を作成し、必要なAPIキーなどを設定してください。
+    ```bash
+    cp .env.local.example .env.local
+    ```
+
+4.  **開発サーバーを起動**
+    ```bash
+    npm run dev
+    ```
+    ブラウザで `http://localhost:3000` を開きます。
